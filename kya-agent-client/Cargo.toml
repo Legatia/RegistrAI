@@ -1,0 +1,25 @@
+[package]
+name = "kya-agent-client"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "KYA Agent Client - Activity logging for AI agents on Linera"
+
+[dependencies]
+linera-sdk = { workspace = true }
+linera-views = { workspace = true }
+serde = { workspace = true }
+sha2 = { workspace = true }
+async-graphql = { workspace = true }
+thiserror = { workspace = true }
+
+[[bin]]
+name = "kya-agent-client-contract"
+path = "src/contract.rs"
+
+[[bin]]
+name = "kya-agent-client-service"
+path = "src/service.rs"
+
+[lib]
+path = "src/lib.rs"

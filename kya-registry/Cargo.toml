@@ -1,0 +1,28 @@
+[package]
+name = "kya-registry"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "KYA Registry - AI Agent reputation hub for Linera"
+
+[dependencies]
+linera-sdk = { workspace = true }
+linera-views = { workspace = true }
+serde = { workspace = true }
+async-graphql = { workspace = true }
+hex = { workspace = true }
+thiserror = { workspace = true }
+
+[[bin]]
+name = "kya-registry-contract"
+path = "src/contract.rs"
+
+[[bin]]
+name = "kya-registry-service"
+path = "src/service.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dev-dependencies]
+linera-base = { workspace = true }

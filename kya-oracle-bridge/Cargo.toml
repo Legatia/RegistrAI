@@ -1,0 +1,25 @@
+[package]
+name = "kya-oracle-bridge"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "KYA Oracle Bridge - Export reputation scores to external chains"
+
+[dependencies]
+linera-sdk = { workspace = true }
+linera-views = { workspace = true }
+serde = { workspace = true }
+async-graphql = { workspace = true }
+sha2 = { workspace = true }
+thiserror = { workspace = true }
+
+[[bin]]
+name = "kya-oracle-bridge-contract"
+path = "src/contract.rs"
+
+[[bin]]
+name = "kya-oracle-bridge-service"
+path = "src/service.rs"
+
+[lib]
+path = "src/lib.rs"

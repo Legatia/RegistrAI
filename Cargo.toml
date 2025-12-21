@@ -1,0 +1,13 @@
+[workspace]
+resolver = "2"
+members = ["kya-registry", "kya-agent-client", "kya-oracle-bridge"]
+
+[workspace.dependencies]
+linera-sdk = "0.15.8"
+linera-views = "0.15.8"
+serde = { version = "1.0", features = ["derive"] }
+async-graphql = "7.0"
+sha2 = "0.10"
+hex = "0.4"
+thiserror = "1.0"
+linera-base = "0.15.8"

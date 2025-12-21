@@ -1,0 +1,44 @@
+# Build artifacts
+target/
+
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Linera
+.linera/
+*.rocksdb/
+
+# Database
+*.db
+*.sqlite
+server/data/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test coverage
+*.lcov
+coverage/
+
+# Docker
+.docker/
+
+# Misc
+*.bak
+*.tmp
