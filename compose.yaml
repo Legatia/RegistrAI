@@ -1,6 +1,7 @@
 services:
   app:
     build: .
+    restart: unless-stopped
     ports:
       - "5173:5173" # Web frontend
       - "3001:3001" # Server API
@@ -9,3 +10,18 @@ services:
       - "13001:13001" # Linera shard
     volumes:
       - .:/build
+      - node_modules_server:/build/server/node_modules
+      - node_modules_web:/build/web/node_modules
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - SESSION_SECRET=${SESSION_SECRET:-dev-secret-change-in-production}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+      - USE_MOCK_LINERA=${USE_MOCK_LINERA:-true}
+
+volumes:
+  node_modules_server:
+  node_modules_web:
+
+

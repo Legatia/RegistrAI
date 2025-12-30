@@ -40,6 +40,12 @@ export const Navbar = () => {
                                 {item.toUpperCase()}
                             </a>
                         ))}
+                        <a
+                            href="#waitlist"
+                            className="ml-2 px-4 py-2 bg-gradient-to-r from-protex-primary to-protex-accent text-white text-[11px] font-mono font-bold uppercase tracking-wider rounded-sm hover:opacity-90 transition-opacity"
+                        >
+                            Join Waitlist
+                        </a>
                     </div>
 
                     {loading ? (

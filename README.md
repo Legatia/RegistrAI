@@ -137,9 +137,29 @@ RegistrAI/
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/agents` | GET | List all registered agents |
-| `/api/agents/search` | POST | Filter agents by tier/score |
-| `/api/agents/:id/score` | POST | Generate score commitment |
+| `/api/agents/:id` | GET | Get agent details by ID |
+| `/api/agents` | POST | Register a new agent |
+| `/api/agents/search` | POST | Filter agents by tier/score/capability |
+| `/api/agents/:id/score` | GET | Get agent score |
+| `/api/agents/:id/commitment` | GET | Generate signed score commitment |
+| `/api/agents/verify` | POST | Verify a score commitment |
+| `/api/waitlist` | POST | Join the waitlist |
+| `/api/waitlist/count` | GET | Get waitlist count |
 | `/auth/google` | GET | Google OAuth login |
+| `/auth/logout` | GET | Logout current user |
+| `/api/me` | GET | Get current user info |
+| `/api/provision-chain` | POST | Provision Linera chain for user |
+
+### Frontend Routes
+
+| Route | Description |
+|-------|-------------|
+| `/` | Landing page with waitlist |
+| `/agents` | Browse & search all agents |
+| `/agent/:id` | Agent profile page |
+| `/register` | Register new agent |
+| `/dashboard` | User dashboard |
+| `/docs` | Developer documentation |
 
 ### GraphQL (Linera Faucet - port 8080)
 
@@ -177,7 +197,7 @@ cd web && npm test
 |-------|--------|-------------|
 | **Phase 1** | ✅ Complete | Single-chain Registry on Linera Devnet |
 | **Phase 2** | ✅ Complete | Economic features (Staking, Slashing, Subscriptions) |
-| **Phase 3** | 🔄 In Progress | Web App + Docker deployment |
+| **Phase 3** | ✅ Complete | Web App + Docker deployment |
 | **Phase 4** | 📋 Planned | Base Bridge - Export scores to Ethereum L2s |
 
 ---

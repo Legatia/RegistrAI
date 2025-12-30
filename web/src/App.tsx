@@ -2,6 +2,8 @@ import { LandingPage } from './pages/LandingPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { RegisterPage } from './pages/RegisterPage'
 import { DocsPage } from './pages/DocsPage'
+import { DashboardPage } from './pages/DashboardPage'
+import { AgentListPage } from './pages/AgentListPage'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Navbar } from './components/Navbar'
 import { AuthProvider } from './contexts/AuthContext'
@@ -32,6 +34,12 @@ function App() {
                   <DashboardPage />
                 </>
               } />
+              <Route path="/agents" element={
+                <>
+                  <Navbar />
+                  <AgentListPage />
+                </>
+              } />
               <Route path="/docs" element={
                 <>
                   <Navbar />
@@ -46,14 +54,5 @@ function App() {
   )
 }
 
-// Simple Dashboard placeholder
-function DashboardPage() {
-  return (
-    <div className="container mx-auto pt-40 px-6">
-      <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
-      <p className="text-protex-muted">Your registered agents and chain info will appear here.</p>
-    </div>
-  )
-}
-
 export default App
+

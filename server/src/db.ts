@@ -52,6 +52,17 @@ db.exec(`
     signature TEXT NOT NULL,
     FOREIGN KEY(agent_id) REFERENCES agents(id)
   );
+
+  CREATE TABLE IF NOT EXISTS waitlist (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    agent_types TEXT,
+    use_case TEXT,
+    chains TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_waitlist_email ON waitlist(email);
 `);
 
 export interface User {
@@ -152,6 +163,59 @@ export function saveCommitment(c: Omit<ScoreCommitment, 'id' | 'created_at'>): v
             agent_id, score, tier, expires_at, commitment_hash, signature
         ) VALUES (?, ?, ?, ?, ?, ?)
     `).run(c.agent_id, c.score, c.tier, c.expires_at, c.commitment_hash, c.signature);
+}
+
+// === Waitlist Functions ===
+
+export interface WaitlistEntry {
+  id: number;
+  email: string;
+  agent_types: string[];
+  use_case: string;
+  chains: string[];
+  created_at: string;
+}
+
+export interface WaitlistInput {
+  email: string;
+  agent_types: string[];
+  use_case: string;
+  chains: string[];
+}
+
+export function addToWaitlist(entry: WaitlistInput): WaitlistEntry {
+  const existing = db.prepare('SELECT * FROM waitlist WHERE email = ?').get(entry.email);
+  if (existing) {
+    throw new Error('Email already registered');
+  }
+
+  db.prepare(`
+    INSERT INTO waitlist (email, agent_types, use_case, chains)
+    VALUES (?, ?, ?, ?)
+  `).run(
+    entry.email,
+    JSON.stringify(entry.agent_types),
+    entry.use_case,
+    JSON.stringify(entry.chains)
+  );
+
+  return getWaitlistByEmail(entry.email)!;
+}
+
+export function getWaitlistByEmail(email: string): WaitlistEntry | undefined {
+  const row = db.prepare('SELECT * FROM waitlist WHERE email = ?').get(email) as any;
+  if (!row) return undefined;
+
+  return {
+    ...row,
+    agent_types: JSON.parse(row.agent_types || '[]'),
+    chains: JSON.parse(row.chains || '[]')
+  };
+}
+
+export function getWaitlistCount(): number {
+  const result = db.prepare('SELECT COUNT(*) as count FROM waitlist').get() as any;
+  return result.count;
 }
 
 export default db;

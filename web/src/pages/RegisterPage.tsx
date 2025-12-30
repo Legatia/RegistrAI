@@ -1,27 +1,73 @@
 import { useState } from 'react';
-import { Upload, FileCode, CheckCircle, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { Upload, FileCode, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { createAgent, hashFile } from '../utils/api';
 
 export const RegisterPage = () => {
+    const navigate = useNavigate();
+    const { user, login } = useAuth();
     const [step, setStep] = useState<1 | 2 | 3>(1);
     const [uploading, setUploading] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     // Form State
     const [file, setFile] = useState<File | null>(null);
+    const [codeHash, setCodeHash] = useState<string>('');
     const [agentName, setAgentName] = useState('');
+    const [description, setDescription] = useState('');
+    const [capabilities, setCapabilities] = useState('');
+    const [createdAgentId, setCreatedAgentId] = useState<string | null>(null);
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
+            const selectedFile = e.target.files[0];
             setUploading(true);
-            setTimeout(() => {
-                setFile(e.target.files![0]);
+            setError(null);
+            try {
+                const hash = await hashFile(selectedFile);
+                setFile(selectedFile);
+                setCodeHash(hash);
+            } catch (err) {
+                setError('Failed to process file');
+            } finally {
                 setUploading(false);
-            }, 1500); // Fake upload delay
+            }
         }
     };
 
-    const handleSubmit = () => {
-        setStep(3);
+    const handleSubmit = async () => {
+        if (!user) {
+            login();
+            return;
+        }
+
+        setSubmitting(true);
+        setError(null);
+
+        try {
+            const capsArray = capabilities
+                .split(',')
+                .map(c => c.trim())
+                .filter(c => c.length > 0);
+
+            const agent = await createAgent({
+                name: agentName,
+                description,
+                code_hash: codeHash,
+                capabilities: capsArray,
+                storage_provider: 'IPFS',
+                storage_cid: '', // Would upload to IPFS in production
+            });
+
+            setCreatedAgentId(agent.id);
+            setStep(3);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to register agent');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -30,6 +76,24 @@ export const RegisterPage = () => {
                 <h1 className="text-3xl font-bold text-white mb-2">Register New Agent</h1>
                 <p className="text-protex-muted">Deploy your autonomous agent to the RegistrAI network.</p>
             </div>
+
+            {/* Auth Warning */}
+            {!user && (
+                <div className="bg-yellow-900/20 border border-yellow-500/30 p-4 mb-8 flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-yellow-400" />
+                    <span className="text-yellow-300">
+                        You need to <button onClick={login} className="underline hover:text-yellow-100">sign in</button> to register agents.
+                    </span>
+                </div>
+            )}
+
+            {/* Error Banner */}
+            {error && (
+                <div className="bg-red-900/20 border border-red-500/30 p-4 mb-8 flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-400" />
+                    <span className="text-red-300">{error}</span>
+                </div>
+            )}
 
             {/* Stepper */}
             <div className="flex items-center justify-between mb-12 px-12 relative">
@@ -73,6 +137,13 @@ export const RegisterPage = () => {
                             </p>
                         </div>
 
+                        {codeHash && (
+                            <div className="bg-black/30 p-4 border border-white/5">
+                                <div className="mono-label mb-2">Code Hash (SHA-256)</div>
+                                <code className="text-xs text-protex-accent break-all">{codeHash}</code>
+                            </div>
+                        )}
+
                         <div className="flex justify-end mt-8">
                             <button
                                 disabled={!file}
@@ -91,7 +162,7 @@ export const RegisterPage = () => {
 
                         <div className="space-y-4">
                             <div>
-                                <label className="mono-label block mb-2">Agent Name</label>
+                                <label className="mono-label block mb-2">Agent Name *</label>
                                 <input
                                     type="text"
                                     className="w-full bg-black/40 border border-white/10 px-4 py-3 text-white focus:border-protex-primary focus:outline-none"
@@ -102,11 +173,24 @@ export const RegisterPage = () => {
                             </div>
 
                             <div>
+                                <label className="mono-label block mb-2">Description</label>
+                                <textarea
+                                    className="w-full bg-black/40 border border-white/10 px-4 py-3 text-white focus:border-protex-primary focus:outline-none resize-none"
+                                    placeholder="What does your agent do?"
+                                    rows={3}
+                                    value={description}
+                                    onChange={e => setDescription(e.target.value)}
+                                />
+                            </div>
+
+                            <div>
                                 <label className="mono-label block mb-2">Capabilities (Comma Separated)</label>
                                 <input
                                     type="text"
                                     className="w-full bg-black/40 border border-white/10 px-4 py-3 text-white focus:border-protex-primary focus:outline-none"
                                     placeholder="DeFi, NFT, Social"
+                                    value={capabilities}
+                                    onChange={e => setCapabilities(e.target.value)}
                                 />
                             </div>
 
@@ -129,11 +213,12 @@ export const RegisterPage = () => {
                                 Back
                             </button>
                             <button
-                                disabled={!agentName}
+                                disabled={!agentName || submitting}
                                 onClick={handleSubmit}
-                                className="bg-protex-primary text-white px-8 py-3 font-mono font-bold uppercase hover:bg-protex-primary/80 disabled:opacity-50 transition-colors"
+                                className="flex items-center gap-2 bg-protex-primary text-white px-8 py-3 font-mono font-bold uppercase hover:bg-protex-primary/80 disabled:opacity-50 transition-colors"
                             >
-                                Register Agent
+                                {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                                {submitting ? 'Registering...' : 'Register Agent'}
                             </button>
                         </div>
                     </div>
@@ -146,7 +231,7 @@ export const RegisterPage = () => {
                         </div>
                         <h2 className="text-3xl font-bold text-white mb-4">Registration Complete</h2>
                         <p className="text-protex-muted max-w-md mx-auto mb-8">
-                            Your agent <strong>{agentName}</strong> has been successfully registered on the Linera network. Evaluation period will begin shortly.
+                            Your agent <strong className="text-white">{agentName}</strong> has been successfully registered on the RegistrAI network. Evaluation period will begin shortly.
                         </p>
 
                         <div className="flex justify-center gap-4">
@@ -155,11 +240,12 @@ export const RegisterPage = () => {
                                     Go to Dashboard
                                 </button>
                             </Link>
-                            <Link to="/agent/new-id-123">
-                                <button className="bg-white text-black px-6 py-3 uppercase font-mono font-bold text-sm hover:bg-protex-accent">
-                                    View Profile
-                                </button>
-                            </Link>
+                            <button
+                                onClick={() => navigate(`/agent/${createdAgentId}`)}
+                                className="bg-white text-black px-6 py-3 uppercase font-mono font-bold text-sm hover:bg-protex-accent"
+                            >
+                                View Profile
+                            </button>
                         </div>
                     </div>
                 )}

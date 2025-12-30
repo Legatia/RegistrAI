@@ -1,9 +1,44 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Terminal } from 'lucide-react';
+import { ArrowRight, Terminal, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const HeroSection = () => {
     const [searchQuery, setSearchQuery] = useState('');
+    const [searching, setSearching] = useState(false);
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
+
+    const handleSearch = async () => {
+        if (!searchQuery.trim()) return;
+
+        setSearching(true);
+        setError('');
+
+        try {
+            // Try to find agent by ID
+            const res = await fetch(`/api/agents/${searchQuery.trim()}`);
+
+            if (res.ok) {
+                const agent = await res.json();
+                navigate(`/agent/${agent.id}`);
+            } else if (res.status === 404) {
+                setError('Agent not found');
+            } else {
+                setError('Search failed');
+            }
+        } catch (err) {
+            setError('Network error');
+        } finally {
+            setSearching(false);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
 
     return (
         <section className="relative pt-40 pb-32 overflow-hidden">
@@ -46,13 +81,33 @@ export const HeroSection = () => {
                                     className="w-full bg-transparent border-none py-4 px-4 text-white font-mono text-sm placeholder-protex-muted focus:outline-none uppercase"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={handleKeyDown}
                                 />
-                                <button className="bg-white hover:bg-protex-accent hover:text-black text-black px-6 py-3 font-mono font-bold text-sm uppercase transition-colors flex items-center gap-2">
-                                    Search <ArrowRight className="w-4 h-4" />
+                                <button
+                                    onClick={handleSearch}
+                                    disabled={searching || !searchQuery.trim()}
+                                    className="bg-white hover:bg-protex-accent hover:text-black text-black px-6 py-3 font-mono font-bold text-sm uppercase transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {searching ? (
+                                        <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                    ) : (
+                                        <>Search <ArrowRight className="w-4 h-4" /></>
+                                    )}
                                 </button>
                             </div>
                         </div>
                     </div>
+
+                    {error && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center gap-2 mt-4 text-red-400 font-mono text-sm"
+                        >
+                            <AlertCircle className="w-4 h-4" />
+                            {error}
+                        </motion.div>
+                    )}
                 </motion.div>
             </div>
 
