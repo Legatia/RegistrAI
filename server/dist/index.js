@@ -87,6 +87,36 @@ app.post('/api/provision-chain', async (req, res) => {
         chainId: result.chainId
     });
 });
+// Waitlist Routes
+import { addToWaitlist, getWaitlistCount } from './db.js';
+app.post('/api/waitlist', (req, res) => {
+    const { email, agent_types, use_case, chains } = req.body;
+    if (!email || !email.includes('@')) {
+        return res.status(400).json({ error: 'Valid email is required' });
+    }
+    try {
+        const entry = addToWaitlist({
+            email,
+            agent_types: agent_types || [],
+            use_case: use_case || 'personal',
+            chains: chains || []
+        });
+        res.json({
+            success: true,
+            message: 'You\'re on the list!',
+            position: getWaitlistCount()
+        });
+    }
+    catch (error) {
+        if (error.message === 'Email already registered') {
+            return res.status(409).json({ error: 'Email already registered' });
+        }
+        res.status(500).json({ error: 'Failed to join waitlist' });
+    }
+});
+app.get('/api/waitlist/count', (_req, res) => {
+    res.json({ count: getWaitlistCount() });
+});
 // Health check
 app.get('/health', (req, res) => {
     res.json({ status: 'ok' });

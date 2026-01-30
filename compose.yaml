@@ -18,7 +18,8 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
       - SESSION_SECRET=${SESSION_SECRET:-dev-secret-change-in-production}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
-      - USE_MOCK_LINERA=${USE_MOCK_LINERA:-true}
+      - USE_MOCK_LINERA=${USE_MOCK_LINERA:-false}
+      - LINERA_FAUCET_URL=${LINERA_FAUCET_URL:-https://faucet.testnet-conway.linera.net}
 
 volumes:
   node_modules_server:

@@ -16,14 +16,14 @@
 git clone https://github.com/Legatia/RegistrAI.git
 cd RegistrAI
 
-# Start everything with Docker
+# Start everything with Docker (connects to Testnet Conway)
 docker compose up --build
 ```
 
 **Access:**
 - 🌐 **Frontend**: http://localhost:5173
 - 🔌 **API Server**: http://localhost:3001
-- 💧 **Linera Faucet**: http://localhost:8080
+- 🔗 **Network**: Linera Testnet Conway (`faucet.testnet-conway.linera.net`)
 
 ---
 
@@ -115,10 +115,10 @@ RegistrAI/
    cargo build -p kya-registry --release --target wasm32-unknown-unknown
    ```
 
-4. **Start Local Testnet**:
+4. **Connect to Testnet Conway**:
    ```bash
-   linera net up --with-faucet &
-   linera wallet init --faucet http://localhost:8080
+   linera wallet init --faucet https://faucet.testnet-conway.linera.net
+   linera wallet request-chain --faucet https://faucet.testnet-conway.linera.net
    ```
 
 5. **Deploy Registry**:

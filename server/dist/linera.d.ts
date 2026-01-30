@@ -4,8 +4,8 @@ export interface ChainProvisionResult {
     error?: string;
 }
 /**
- * Provisions a new Linera microchain for a user.
- * This calls the `linera open-chain` command.
+ * Provisions a new Linera microchain for a user on Testnet Conway.
+ * This calls `linera wallet request-chain` with the faucet.
  *
  * In production, you'd want to:
  * - Use a dedicated service account wallet

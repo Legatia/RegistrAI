@@ -23,4 +23,21 @@ export declare function createAgent(agent: Omit<Agent, 'registered_at' | 'update
 export declare function getAgentById(id: string): Agent | undefined;
 export declare function listAgents(limit?: number, offset?: number): Agent[];
 export declare function saveCommitment(c: Omit<ScoreCommitment, 'id' | 'created_at'>): void;
+export interface WaitlistEntry {
+    id: number;
+    email: string;
+    agent_types: string[];
+    use_case: string;
+    chains: string[];
+    created_at: string;
+}
+export interface WaitlistInput {
+    email: string;
+    agent_types: string[];
+    use_case: string;
+    chains: string[];
+}
+export declare function addToWaitlist(entry: WaitlistInput): WaitlistEntry;
+export declare function getWaitlistByEmail(email: string): WaitlistEntry | undefined;
+export declare function getWaitlistCount(): number;
 export default db;

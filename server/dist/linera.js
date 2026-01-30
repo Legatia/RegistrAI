@@ -1,9 +1,10 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 const execAsync = promisify(exec);
+const FAUCET_URL = process.env.LINERA_FAUCET_URL || 'https://faucet.testnet-conway.linera.net';
 /**
- * Provisions a new Linera microchain for a user.
- * This calls the `linera open-chain` command.
+ * Provisions a new Linera microchain for a user on Testnet Conway.
+ * This calls `linera wallet request-chain` with the faucet.
  *
  * In production, you'd want to:
  * - Use a dedicated service account wallet
@@ -12,8 +13,8 @@ const execAsync = promisify(exec);
  */
 export async function provisionChain() {
     try {
-        // Check if linera CLI is available
-        const { stdout, stderr } = await execAsync('linera open-chain 2>&1');
+        // Request a new chain from Testnet Conway faucet
+        const { stdout, stderr } = await execAsync(`linera wallet request-chain --faucet="${FAUCET_URL}" 2>&1`);
         // Parse the chain ID from output
         // Format: "New chain: <chain_id>"
         const lines = stdout.trim().split('\n');
