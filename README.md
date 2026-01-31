@@ -57,7 +57,8 @@ Unlike static registries, our reputation is **live**:
 RegistrAI/
 ├── kya-registry/       # Linera smart contract (Rust)
 ├── kya-agent-client/   # Agent SDK for microchain integration
-├── kya-oracle-bridge/  # Cross-chain score export (Base/Solana)
+├── kya-oracle-bridge/  # Cross-chain score export (Linera)
+├── contracts/          # EVM contracts (Base/Ethereum verifier)
 ├── server/             # Node.js API server
 ├── web/                # React frontend
 ├── Dockerfile          # Docker container setup

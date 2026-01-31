@@ -1,10 +1,13 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
+import { ethers } from 'ethers';
 import { createAgent, getAgentById, listAgents, saveCommitment } from '../db.js';
 const router = express.Router();
 // Secret key for signing commitments (in production, use KMS or separate key)
 const SIGNING_SECRET = process.env.SIGNING_SECRET || 'dev-signing-secret-do-not-use-in-prod';
+// EVM signer for Base/Ethereum oracle commitments
+const EVM_SIGNER_KEY = process.env.EVM_SIGNER_PRIVATE_KEY;
 // GET /api/agents - List all agents
 router.get('/', (req, res) => {
     const limit = parseInt(req.query.limit) || 50;
@@ -61,6 +64,46 @@ router.get('/:id/commitment', (req, res) => {
     // Save for audit trail
     saveCommitment(commitment);
     res.json(commitment);
+});
+// GET /api/agents/:id/evm-commitment - Generate EVM-compatible signed commitment for Base/Ethereum
+router.get('/:id/evm-commitment', async (req, res) => {
+    if (!EVM_SIGNER_KEY) {
+        return res.status(503).json({
+            error: 'EVM signer not configured',
+            hint: 'Set EVM_SIGNER_PRIVATE_KEY in .env'
+        });
+    }
+    const agent = getAgentById(req.params.id);
+    if (!agent) {
+        return res.status(404).json({ error: 'Agent not found' });
+    }
+    const tierMap = {
+        'UNVERIFIED': 0, 'VERIFIED': 1, 'GOLD': 2, 'PLATINUM': 3
+    };
+    const timestamp = Math.floor(Date.now() / 1000);
+    const expiresAt = timestamp + 3600; // 1 hour validity
+    try {
+        // Create message hash matching Solidity's keccak256(abi.encodePacked(...))
+        const messageHash = ethers.solidityPackedKeccak256(['string', 'uint16', 'uint8', 'uint64', 'uint64'], [agent.id, agent.reputation_score, tierMap[agent.tier], timestamp, expiresAt]);
+        const wallet = new ethers.Wallet(EVM_SIGNER_KEY);
+        const signature = await wallet.signMessage(ethers.getBytes(messageHash));
+        res.json({
+            agent_id: agent.id,
+            score: agent.reputation_score,
+            tier: tierMap[agent.tier],
+            tier_name: agent.tier,
+            timestamp,
+            expires_at: expiresAt,
+            signature,
+            oracle_address: wallet.address,
+            verifier_address: process.env.KYA_VERIFIER_ADDRESS || 'Not deployed yet',
+            chain: 'base_sepolia'
+        });
+    }
+    catch (err) {
+        console.error('Failed to sign EVM commitment:', err);
+        res.status(500).json({ error: 'Failed to sign commitment' });
+    }
 });
 // POST /api/agents/search - Search agents
 router.post('/search', (req, res) => {
